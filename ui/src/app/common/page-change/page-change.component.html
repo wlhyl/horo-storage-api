@@ -1,0 +1,15 @@
+<div style="text-align: center;">
+    <i class="bi bi-caret-left page" *ngIf="page>0" (click)="previous()"></i>
+    <!-- <ng-container *ngFor="let item of [].constructor(end-start+1);index as i">
+        <span *ngIf="i!==page; else selected" class="mx-2 page" (click)="toPage(i)">{{start + i}}</span>
+        <ng-template #selected>
+            <span class="mx-2" (click)="toPage(i)">{{start + i}}</span>
+        </ng-template>
+    </ng-container> -->
+    <ng-container *ngFor="let item of [].constructor(end-start+1);index as i">
+
+        <span class="mx-2" [ngClass]="{page: i!==page}" (click)="toPage(i)">{{start + i}}</span>
+
+    </ng-container>
+    <i class="bi bi-caret-right page" *ngIf="page<total-1" (click)="next()"></i>
+</div>

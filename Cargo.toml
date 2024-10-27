@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+
+members = [ "entity","migration", "api"]
+#members = [ "entity","migration", ]
+#members = [ "migration", ]
+
+
+# [profile.release]
+# opt-level = 3 # fast and small wasm
+
+# Optimize all dependencies even in debug builds:
+# [profile.dev.package."*"]
+# opt-level = 0

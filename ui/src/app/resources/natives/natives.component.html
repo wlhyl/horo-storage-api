@@ -1,0 +1,224 @@
+<app-alert [(alerts)]="message"></app-alert>
+<div class="container">
+    <h5>
+        {{ native.id==0? "添加native":"更新native " }}
+    </h5>
+    <div class="row my-2">
+        <div class="col-2">名称</div>
+        <div class="col-4">
+            <input type="text" class="form-control" [(ngModel)]="native.name" name="name" />
+        </div>
+    </div>
+    <!-- 性别 -->
+    <div class="row my-2">
+        <div class="col-2">性别</div>
+
+        <div class="col">
+
+            <input class="form-check-input mx-2" type="radio" name="male" id="male" [(ngModel)]="native.sex"
+                [value]="true">
+            <label class="form-check-label" for="male"> 男 </label>
+
+            <input class="form-check-input mx-2" type="radio" name="female" id="female" [(ngModel)]="native.sex"
+                [value]="false">
+            <label class="form-check-label" for="female"> 女 </label>
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <div class="col-2">时间</div>
+        <div class="col input-group ">
+
+
+            <input id="year" type="number" min="1900" max="2100" class="form-control" [(ngModel)]="native.year"
+                name="year" />
+            <label class="input-group-text" for="year">年</label>
+
+            <input id="month" type="number" min="1900" max="2100" class="form-control" [(ngModel)]="native.month"
+                name="month" />
+            <label class="input-group-text" for="month">月</label>
+
+            <input id="day" type="number" min="1" max="31" class="form-control" [(ngModel)]="native.day" name="day" />
+            <label class="input-group-text" for="day">日</label>
+
+
+            <input id="hour" type="number" min="0" max="23" class=" form-control" [(ngModel)]="native.hour"
+                name="hour" />
+            <label class="input-group-text" for="hour">时</label>
+
+            <input id="minute" type="number" min="0" max="59" class="form-control" [(ngModel)]="native.minute"
+                name="minute" />
+            <label class="input-group-text" for="minute">分</label>
+
+            <input id="second" type="number" min="0" max="59" class="form-control" [(ngModel)]="native.second"
+                name="second" />
+            <label class="input-group-text" for="second">秒</label>
+        </div>
+    </div>
+    <!-- 时区 -->
+    <div class="row my-2">
+        <div class="col-2">时区</div>
+        <div class="col-4">
+            <select class="form-control" name="timezone" id="timezone" [(ngModel)]="native.tz">
+                <option *ngFor="let item of zones" [ngValue]=item>
+
+                    <ng-container *ngIf="item == 0">0时区</ng-container>
+                    <ng-container *ngIf="item < 0">西{{ item * -1 }}区</ng-container>
+                    <ng-container *ngIf="item > 0">东{{ item }}区</ng-container>
+                </option>
+            </select>
+        </div>
+
+    </div>
+
+    <!-- 夏令时 -->
+    <div class="row my-2">
+        <div class="col-2">夏令时</div>
+        <div class="col-4">
+            <input type="checkbox" class="form-check-input" name="summerTime" [(ngModel)]="native.st" />
+        </div>
+    </div>
+
+    <!-- 经纬度 -->
+    <div class="row my-2">
+        <div class="col-2"> 经纬度</div>
+        <div class="col">
+
+            <div class="input-group">
+                <label class="input-group-text" for="geo_name">名称</label>
+                <input id="geo_name" type="text" class="form-control" [(ngModel)]="native.geo!.name" name="name" />
+            </div>
+
+            <div class=" input-group">
+                <select class="form-control" id="long_direction" name="long_direction" [(ngModel)]="native.geo.east">
+                    <option [ngValue]="true"> 东 </option>
+                    <option [ngValue]="false"> 西 </option>
+                </select>
+                <label class="input-group-text" for="long_direction">经</label>
+
+                <input id="long_d" type="number" min="0" max="180" class="form-control" [(ngModel)]="native.geo!.long_d"
+                    name="long_d" />
+                <label class="input-group-text" for="long_d">度</label>
+
+                <input id="long_m" type="number" min="0" max="59" class="form-control" [(ngModel)]="native.geo!.long_m"
+                    name="long_m" />
+                <label class="input-group-text" for="long_m">分</label>
+
+                <input id="long_s" type="number" min="0" max="59" class="form-control" [(ngModel)]="native.geo!.long_s"
+                    name="long_s" />
+                <label class="input-group-text" for="long_s">秒</label>
+            </div>
+
+
+
+            <div class=" input-group">
+                <select class="form-control" id="lat_direction" name="long_direction" [(ngModel)]="native.geo.north">
+                    <option [ngValue]="true"> 北 </option>
+                    <option [ngValue]="false"> 南 </option>
+                </select>
+                <label class="input-group-text" for="lat_direction">纬</label>
+
+                <input id="lat_d" type="number" min="0" max="90" class="form-control" [(ngModel)]="native.geo!.lat_d"
+                    name="lat_d" />
+                <label class="input-group-text" for="lat_d">度</label>
+
+                <input id="lat_m" type="number" min="0" max="59" class="form-control" [(ngModel)]="native.geo!.lat_m"
+                    name="lat_m" />
+                <label class="input-group-text" for="lat_m">分</label>
+
+                <input id="lat_s" type="number" min="0" max="59" class="form-control" [(ngModel)]="native.geo!.lat_s"
+                    name="lat_s" />
+                <label class="input-group-text" for="lat_s">秒</label>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <!-- 描述 -->
+    <div class="row my-2">
+        <div class="col-2">备注</div>
+
+        <div class="col">
+            <textarea class="form-control" rows="3" #textbox
+                (change)="native.describe= textbox.value ">{{ native.describe}}</textarea>
+
+
+
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary" (click)="save()" [disabled]="saving">
+                <ng-container *ngIf="saving; else noSave">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    保存...
+                </ng-container>
+                <ng-template #noSave><span>保存</span></ng-template>
+            </button>
+
+            <button type="submit" class="btn btn-warning mx-1" (click)="cancel()" [disabled]="saving">
+                取消
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">姓名</th>
+                <th scope="col">姓别</th>
+                <th scope="col">时间</th>
+                <!-- <th scope="col">时区</th> -->
+                <!-- <th scope="col">夏令时</th> -->
+                <th scope="col">城市</th>
+                <th scope="col">创建时间</th>
+                <th scope="col">最后更新时间</th>
+                <th scope="col">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let native of natives.data">
+                <td><span class="edit" (click)="edit(native.id)"> {{native.id}}</span></td>
+                <td> {{native.name}} </td>
+                <td>{{ native.sex? "男": "女" }}</td>
+                <td>
+                    {{native.year}}-{{native.month.toString().padStart(2, "0")}}-{{native.day.toString().padStart(2,
+                    "0")}}
+                    {{native.hour.toString().padStart(2, "0")}}:{{native.minute.toString().padStart(2,
+                    "0")}}:{{native.second.toString().padStart(2, "0")}},{{native.tz}}{{native.st? ',st': null}}
+                    <!-- TZ<ng-container *ngIf="native.tz>0">+</ng-container>{{ native.tz}} -->
+                </td>
+                <!-- <td>
+                    <ng-container *ngIf="native.tz == 0">0时区</ng-container>
+                    <ng-container *ngIf="native.tz < 0">西{{ native.tz * -1 }}区</ng-container>
+                    <ng-container *ngIf="native.tz > 0">东{{ native.tz }}区</ng-container>
+                </td> -->
+                <!-- <td>{{native.st? "是": "否"}}</td> -->
+                <td> <label
+                        ngbTooltip="{{native.geo.east? '+':'-' }}{{native.geo.long_d}}&deg;{{native.geo.long_m}}'{{native.geo.long_s}},{{native.geo.north? '+':'-'}}{{native.geo.lat_d}}&deg;{{native.geo.lat_m}}'{{native.geo.lat_s}}">
+                        {{native.geo.name}}</label> </td>
+
+
+                <td>{{ native.create_date}}</td>
+                <td>{{native.last_update_date}}</td>
+
+                <td>
+                    <span *ngIf="deleting==native.id" style="color: #b32d2e;">删除中...</span>
+                    <span *ngIf="deleting==0" class="edit" style="color: #b32d2e;" (click)="delete(native.id)">删除</span>
+                    <span *ngIf="deleting>0 && deleting!=native.id" style="color: #b32d2e;">等待其任务完成</span>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+</div>
+
+<app-page-change [page]="page" [total]="natives.total" (pageChange)="pageChange($event)"></app-page-change>

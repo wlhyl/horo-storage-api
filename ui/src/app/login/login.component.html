@@ -1,0 +1,17 @@
+<div class="login">
+    <div class="login-box login-box-radius">
+        <h1 class="mb-3 text-center">登录</h1>
+
+
+        <input type="text" class="form-control my-2" placeholder="用户名" [(ngModel)]="name" name="name" />
+        <div class="error" *ngIf="nameError"> {{nameError}} </div>
+
+        <input type="password" class="form-control my-2" placeholder="密码" [(ngModel)]="password" name="password" />
+        <div class="error" *ngIf="passwordError"> {{passwordError}} </div>
+        <div class="error" *ngIf="authError"> {{authError}} </div>
+        <div class="my-2">
+            <button type="submit" class="btn btn-primary login-button" (click)="login()">登录</button>
+        </div>
+
+    </div>
+</div>
