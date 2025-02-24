@@ -1,10 +1,14 @@
 mod date_time_format;
 mod option_date_time_format;
 
-mod native;
+mod horoscope;
 mod user;
 
-pub use native::{Geo, Native};
+pub use horoscope::Horoscope;
+
+#[cfg(feature = "swagger")]
+pub use horoscope::Location;
+
 pub use user::Token;
 
 use serde::Serialize;

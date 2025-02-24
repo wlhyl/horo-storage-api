@@ -2,52 +2,59 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation}
 use log::debug;
 use serde::{Deserialize, Serialize};
 
-use crate::error::{self, Error};
+use crate::error::Error;
 
 pub fn generate_save_token(
-    user: &entity::user::Model,
+    user: &entity::users::Model,
     secret: &str,
     token_expire_seconds: u64,
 ) -> Result<String, Error> {
     let exp = chrono::Utc::now()
         .checked_add_signed(chrono::Duration::seconds(
             token_expire_seconds.try_into().map_err(|e| {
-                debug!("错误：{e}, 配置的token过期时间：{token_expire_seconds}");
-                error::Error::InternalServerError("应用配置错误，请修改token过期时间的配置".into())
+                debug!("token过期时间转换错误: {}", e);
+                Error::Internal("token配置错误".to_string())
             })?,
         ))
         .ok_or_else(|| {
-            debug!("计算token过期时间错误！");
-            Error::InternalServerError("生成token错误".to_string())
+            debug!("token过期时间计算错误");
+            Error::Internal("token生成失败".to_string())
         })?
         .timestamp();
 
     let claims = Claims {
         id: user.id,
-        name: user.name.clone(),
+        name: user.username.clone(),
         exp,
     };
-    let token = encode(
+
+    encode(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(secret.as_ref()),
-    )?;
-
-    Ok(token)
+    )
+    .map_err(|e| {
+        debug!("token编码错误: {}", e);
+        Error::Auth("token生成失败".to_string())
+    })
 }
 
 pub fn verify(token: &str, secret: &str) -> Result<Claims, Error> {
-    let token = decode::<Claims>(
+    decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret.as_ref()),
         &Validation::default(),
-    )?;
-    Ok(token.claims)
+    )
+    .map(|token_data| token_data.claims)
+    .map_err(|e| {
+        debug!("token验证错误: {}", e);
+        Error::Auth("无效的token".to_string())
+    })
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub id: u32,
-    name: String,
+    pub name: String,
     exp: i64,
 }

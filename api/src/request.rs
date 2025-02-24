@@ -1,9 +1,11 @@
-mod geo;
-mod native;
+mod horoscope;
+mod location;
 mod user;
 
-pub use geo::GeoRequest;
-pub use native::NativeRequest;
+#[cfg(feature = "swagger")]
+pub use location::LocationRequest;
+
+pub use horoscope::{HoroscopeRequest, UpdateHoroscopeRequest};
 pub use user::{LoginUserRequest, UpdateUserRequest};
 
 use serde::Deserialize;

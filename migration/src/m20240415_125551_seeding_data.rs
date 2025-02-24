@@ -1,10 +1,10 @@
 use std::env;
 
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rand::{ distr::Alphanumeric, rng, Rng};
 use sea_orm_migration::prelude::*;
 use storage_api::utils::password_encoder;
 
-use crate::m20220101_000001_create_table::User;
+use crate::m20220101_000001_create_table::Users;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -25,7 +25,7 @@ impl MigrationTrait for Migration {
             )
         })?;
 
-        let salt: String = thread_rng()
+        let salt: String = rng()
             .sample_iter(Alphanumeric)
             .take(5)
             .map(char::from)
@@ -37,8 +37,8 @@ impl MigrationTrait for Migration {
 
         let now = chrono::Local::now().naive_local();
         let insert = Query::insert()
-            .into_table(User::Table)
-            .columns([User::Name, User::Password, User::Salt, User::CreateDate])
+            .into_table(Users::Table)
+            .columns([Users::Username, Users::PasswordHash, Users::Salt, Users::CreatedAt])
             .values_panic([name.into(), password.into(), salt.into(), now.into()])
             .to_owned();
 

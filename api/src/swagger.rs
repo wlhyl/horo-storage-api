@@ -7,30 +7,31 @@ use utoipa::{
 };
 
 use crate::handlers::{
-    native::{
-        __path_delete_native, __path_get_native_pages, __path_insert_native, __path_update_native,
+    horoscope::{
+        __path_delete_native, __path_get_horoscope_pages, __path_add_horoscope, __path_update_native,
+        __path_get_horoscope_by_id
     },
     user::{__path_login, __path_update_user},
 };
 
-use crate::request::{GeoRequest, LoginUserRequest, NativeRequest, UpdateUserRequest};
-use crate::response::{Geo, Native, Token};
+use crate::request::{LocationRequest, LoginUserRequest, HoroscopeRequest,UpdateHoroscopeRequest, UpdateUserRequest};
+use crate::response::{Location, Horoscope, Token};
 
 #[derive(OpenApi)]
 #[openapi(
     paths(
     
     // native
-    get_native_pages, insert_native,
+    get_horoscope_pages, get_horoscope_by_id,add_horoscope,
     update_native,
      delete_native,
     // user
         login, update_user,
     ),
     components(schemas(
-         GeoRequest,
+         LocationRequest,
     // native
-        Native, Geo, NativeRequest,
+        Horoscope, Location, HoroscopeRequest, UpdateHoroscopeRequest,
     // user
         LoginUserRequest, UpdateUserRequest, Token,
     )),

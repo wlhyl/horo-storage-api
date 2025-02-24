@@ -1,76 +1,76 @@
-use std::{collections::HashMap, fmt};
-
 use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 use serde::Serialize;
+use std::collections::HashMap;
+use thiserror::Error;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Error, Serialize)]
 pub enum Error {
-    ActixError(String),
-    DBError(String),
-    BadRequest(String),
-    NotFound(String),
-    InternalServerError(String),
-    Forbidden(String),
-}
+    #[error("认证错误: {0}")]
+    Auth(String),
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = match self {
-            Error::ActixError(s) => s,
-            Error::DBError(s) => s,
-            Error::BadRequest(s) => s,
-            Error::NotFound(s) => s,
-            Error::InternalServerError(s) => s,
-            Error::Forbidden(s) => s,
-        };
-        write!(f, "{}", s)
-    }
+    #[error("权限不足: {0}")]
+    Forbidden(String),
+
+    #[error("请求无效: {0}")]
+    BadRequest(String),
+
+    #[error("资源未找到: {0}")]
+    NotFound(String),
+
+    #[error("数据库错误: {0}")]
+    Database(String),
+
+    #[error("验证错误: {0}")]
+    Validation(String),
+
+    #[error("服务器内部错误: {0}")]
+    Internal(String),
 }
 
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
-            Error::ActixError(_) | Error::DBError(_) | Error::InternalServerError(_) => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
-            Error::BadRequest(_) | Error::NotFound(_) => StatusCode::BAD_REQUEST,
+            Error::Auth(_) => StatusCode::UNAUTHORIZED,
             Error::Forbidden(_) => StatusCode::FORBIDDEN,
+            Error::BadRequest(_) | Error::Validation(_) => StatusCode::BAD_REQUEST,
+            Error::NotFound(_) => StatusCode::NOT_FOUND,
+            Error::Database(_) | Error::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
-    fn error_response(&self) -> actix_web::HttpResponse<actix_web::body::BoxBody> {
+    fn error_response(&self) -> HttpResponse {
         let mut result = HashMap::new();
-        result.insert("error", format!("{}", self));
+        result.insert("error", self.to_string());
         HttpResponse::build(self.status_code()).json(result)
     }
 }
 
-impl From<actix_web::error::Error> for Error {
-    fn from(error: actix_web::error::Error) -> Self {
-        Error::ActixError(error.to_string())
+impl From<sea_orm::DbErr> for Error {
+    fn from(err: sea_orm::DbErr) -> Self {
+        Error::Database(err.to_string())
     }
 }
 
-impl From<sea_orm::error::DbErr> for Error {
-    fn from(err: sea_orm::error::DbErr) -> Self {
-        Error::DBError(err.to_string())
+impl From<actix_web::Error> for Error {
+    fn from(err: actix_web::Error) -> Self {
+        Error::Internal(err.to_string())
     }
 }
 
 impl From<bcrypt::BcryptError> for Error {
-    fn from(error: bcrypt::BcryptError) -> Self {
-        Error::InternalServerError(error.to_string())
+    fn from(err: bcrypt::BcryptError) -> Self {
+        Error::Internal(err.to_string())
     }
 }
 
 impl From<jsonwebtoken::errors::Error> for Error {
-    fn from(error: jsonwebtoken::errors::Error) -> Self {
-        Error::InternalServerError(error.to_string())
+    fn from(err: jsonwebtoken::errors::Error) -> Self {
+        Error::Auth(err.to_string())
     }
 }
 
 impl From<actix_web_validator::Error> for Error {
-    fn from(value: actix_web_validator::Error) -> Self {
-        Error::BadRequest(value.to_string())
+    fn from(err: actix_web_validator::Error) -> Self {
+        Error::Validation(err.to_string())
     }
 }

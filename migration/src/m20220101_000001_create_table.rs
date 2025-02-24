@@ -11,25 +11,29 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(User::Table)
+                    .table(Users::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(User::Id)
+                        ColumnDef::new(Users::Id)
                             .unsigned()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
                     .col(
-                        ColumnDef::new(User::Name)
+                        ColumnDef::new(Users::Username)
                             .string_len(64)
                             .not_null()
                             .unique_key(),
                     )
-                    .col(ColumnDef::new(User::Password).string_len(64).not_null())
-                    .col(ColumnDef::new(User::Salt).string_len(5).not_null())
-                    .col(ColumnDef::new(User::CreateDate).date_time().not_null())
-                    .col(ColumnDef::new(User::LastLoginDate).date_time())
+                    .col(
+                        ColumnDef::new(Users::PasswordHash)
+                            .string_len(64)
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Users::Salt).string_len(5).not_null())
+                    .col(ColumnDef::new(Users::CreatedAt).date_time().not_null())
+                    .col(ColumnDef::new(Users::LastLoginAt).date_time())
                     .to_owned(),
             )
             .await?;
@@ -37,77 +41,146 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Geo::Table)
+                    .table(Locations::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Geo::Id)
+                        ColumnDef::new(Locations::Id)
                             .unsigned()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Geo::Name).string_len(24).not_null())
-                    .col(ColumnDef::new(Geo::East).boolean().not_null())
-                    .col(ColumnDef::new(Geo::LongD).small_unsigned().not_null())
-                    .col(ColumnDef::new(Geo::LongM).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Geo::LongS).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Geo::North).boolean().not_null())
-                    .col(ColumnDef::new(Geo::LatD).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Geo::LatM).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Geo::LatS).tiny_unsigned().not_null())
+                    .col(ColumnDef::new(Locations::Name).string_len(30).not_null())
+                    .col(ColumnDef::new(Locations::IsEast).boolean().not_null())
+                    .col(
+                        ColumnDef::new(Locations::LongitudeDegree)
+                            .small_unsigned()
+                            .not_null()
+                            .check(Expr::col(Locations::LongitudeDegree).lte(180)),
+                    )
+                    .col(
+                        ColumnDef::new(Locations::LongitudeMinute)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Locations::LongitudeMinute).lte(59)),
+                    )
+                    .col(
+                        ColumnDef::new(Locations::LongitudeSecond)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Locations::LongitudeSecond).lte(59)),
+                    )
+                    .col(ColumnDef::new(Locations::IsNorth).boolean().not_null())
+                    .col(
+                        ColumnDef::new(Locations::LatitudeDegree)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Locations::LatitudeDegree).lte(90)),
+                    )
+                    .col(
+                        ColumnDef::new(Locations::LatitudeMinute)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Locations::LatitudeMinute).lte(59)),
+                    )
+                    .col(
+                        ColumnDef::new(Locations::LatitudeSecond)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Locations::LatitudeSecond).lte(59)),
+                    )
                     .to_owned(),
             )
             .await?;
         manager
             .create_table(
                 Table::create()
-                    .table(Native::Table)
+                    .table(Horoscopes::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Native::Id)
+                        ColumnDef::new(Horoscopes::Id)
                             .unsigned()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Native::Name).string_len(4))
-                    .col(ColumnDef::new(Native::Sex).boolean().not_null())
-                    .col(ColumnDef::new(Native::Year).integer().not_null())
-                    .col(ColumnDef::new(Native::Month).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Native::Day).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Native::Hour).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Native::Minute).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Native::Second).tiny_unsigned().not_null())
-                    .col(ColumnDef::new(Native::TZ).double().not_null())
-                    .col(ColumnDef::new(Native::ST).boolean().not_null())
+                    .col(ColumnDef::new(Horoscopes::Name).string_len(30).not_null())
+                    .col(ColumnDef::new(Horoscopes::Gender).boolean().not_null())
+                    .col(ColumnDef::new(Horoscopes::BirthYear).integer().not_null())
                     .col(
-                        ColumnDef::new(Native::GeoId)
+                        ColumnDef::new(Horoscopes::BirthMonth)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(
+                                Expr::col(Horoscopes::BirthMonth)
+                                    .gte(1)
+                                    .and(Expr::col(Horoscopes::BirthMonth).lte(12)),
+                            ),
+                    )
+                    .col(
+                        ColumnDef::new(Horoscopes::BirthDay)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(
+                                Expr::col(Horoscopes::BirthDay)
+                                    .gte(1)
+                                    .and(Expr::col(Horoscopes::BirthDay).lte(31)),
+                            ),
+                    )
+                    .col(
+                        ColumnDef::new(Horoscopes::BirthHour)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Horoscopes::BirthHour).lte(23)),
+                    )
+                    .col(
+                        ColumnDef::new(Horoscopes::BirthMinute)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Horoscopes::BirthMinute).lte(59)),
+                    )
+                    .col(
+                        ColumnDef::new(Horoscopes::BirthSecond)
+                            .tiny_unsigned()
+                            .not_null()
+                            .check(Expr::col(Horoscopes::BirthSecond).lte(59)),
+                    )
+                    .col(
+                        ColumnDef::new(Horoscopes::TimeZoneOffset)
+                            .double()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(Horoscopes::IsDst).boolean().not_null())
+                    .col(
+                        ColumnDef::new(Horoscopes::LocationId)
                             .unsigned()
                             .unique_key()
                             .not_null(),
                     )
-                    // .col(ColumnDef::new(Native::HouseId).unsigned())
-                    // .col(ColumnDef::new(Native::IsNative).boolean().not_null())
-                    // .col(ColumnDef::new(Native::AppId).unsigned().not_null())
-                    .col(ColumnDef::new(Native::Describe).text())
-                    .col(ColumnDef::new(Native::UserId).unsigned().not_null())
-                    .col(ColumnDef::new(Native::CreateDate).date_time().not_null())
-                    .col(ColumnDef::new(Native::LastUpdateDate).date_time())
+                    .col(ColumnDef::new(Horoscopes::Description).text().not_null())
+                    .col(ColumnDef::new(Horoscopes::UserId).unsigned().not_null())
+                    .col(ColumnDef::new(Horoscopes::CreatedAt).date_time().not_null())
+                    .col(ColumnDef::new(Horoscopes::UpdatedAt).date_time())
                     .foreign_key(
                         ForeignKey::create()
                             .name("native_geo")
-                            .from(Native::Table, Native::GeoId)
-                            .to(Geo::Table, Geo::Id)
+                            .from(Horoscopes::Table, Horoscopes::LocationId)
+                            .to(Locations::Table, Locations::Id)
                             .on_delete(ForeignKeyAction::Restrict)
                             .on_update(ForeignKeyAction::Restrict),
                     )
                     .foreign_key(
                         ForeignKey::create()
                             .name("native_user")
-                            .from(Native::Table, Native::UserId)
-                            .to(User::Table, User::Id)
+                            .from(Horoscopes::Table, Horoscopes::UserId)
+                            .to(Users::Table, Users::Id)
                             .on_delete(ForeignKeyAction::Restrict)
                             .on_update(ForeignKeyAction::Restrict),
+                    )
+                    .index(
+                        Index::create()
+                            .name("idx_native_user")
+                            .col(Horoscopes::UserId),
                     )
                     .to_owned(),
             )
@@ -118,63 +191,63 @@ impl MigrationTrait for Migration {
         // Replace the sample below with your own migration scripts
 
         manager
-            .drop_table(Table::drop().table(Native::Table).to_owned())
+            .drop_table(Table::drop().table(Horoscopes::Table).to_owned())
             .await?;
 
         manager
-            .drop_table(Table::drop().table(Geo::Table).to_owned())
+            .drop_table(Table::drop().table(Locations::Table).to_owned())
             .await?;
 
         manager
-            .drop_table(Table::drop().table(User::Table).to_owned())
+            .drop_table(Table::drop().table(Users::Table).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
-enum Native {
+enum Horoscopes {
     Table,
     Id,
     Name,
-    Sex, //性别
-    Year,
-    Month,
-    Day,
-    Hour,
-    Minute,
-    Second,
-    TZ,    //时区
-    ST,    //夏令时
-    GeoId, // 出生地
+    Gender, //性别
+    BirthYear,
+    BirthMonth,
+    BirthDay,
+    BirthHour,
+    BirthMinute,
+    BirthSecond,
+    TimeZoneOffset, //时区
+    IsDst,          //夏令时
+    LocationId,     // 出生地
     // HouseId,  //宫位，null表示非占星数据，不当有house，由使用者提供
-    Describe, // 说明文字
+    Description, // 说明文字
     UserId,
-    CreateDate,
-    LastUpdateDate,
+    CreatedAt,
+    UpdatedAt,
 }
 
 #[derive(DeriveIden)]
-enum Geo {
+enum Locations {
     Id,
     Table,
     Name,
-    East,
-    LongD, // 度
-    LongM, // 分
-    LongS, // 秒
-    North,
-    LatD,
-    LatM,
-    LatS,
+    IsEast,
+    LongitudeDegree, // 度
+    LongitudeMinute, // 分
+    LongitudeSecond, // 秒
+    IsNorth,
+    LatitudeDegree,
+    LatitudeMinute,
+    LatitudeSecond,
 }
 
 #[derive(DeriveIden)]
-pub enum User {
+pub enum Users {
     Id,
     Table,
-    Name,
-    Password,
+    Username,
+    PasswordHash,
     Salt,
-    CreateDate,
-    LastLoginDate,
+    CreatedAt,
+    LastLoginAt,
 }

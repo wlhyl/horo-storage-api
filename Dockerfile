@@ -1,4 +1,4 @@
-FROM rust:1.82.0-alpine as build
+FROM rust:1.85.0-alpine as build
 WORKDIR /app
 COPY ./ /app/
 
@@ -21,7 +21,7 @@ RUN strip -s /tmp/app/bin/migration
 RUN strip  --strip-debug  /tmp/app/bin/migration 
 RUN upx /tmp/app/bin/migration
 
-FROM alpine:3.20.3
+FROM alpine:3.21.3
 
 WORKDIR /app
 

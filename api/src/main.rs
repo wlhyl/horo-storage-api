@@ -1,12 +1,12 @@
-use std::{env, net::SocketAddrV4, time::Duration};
+use std::net::SocketAddrV4;
 
 use actix_web::{middleware, web, App, HttpServer};
 use actix_web_validator::JsonConfig;
 use clap::Parser;
 
-use sea_orm::{ConnectOptions, Database};
 use storage_api::{
-    args,
+    config::Config,
+    database::setup_database,
     error::Error,
     middleware::Auth,
     routers::{api_routes, health_routes},
@@ -25,48 +25,27 @@ use utoipa_swagger_ui::SwaggerUi;
 #[cfg(feature = "cors")]
 use actix_cors::Cors;
 
+use storage_api::cli::ServerConfig;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenvy::dotenv().ok();
+    let server_config = ServerConfig::parse();
+    let config = Config::from_env().expect("Failed to load configuration");
 
-    let log4rs_config = env::var("LOG4RS_CONFIG")
-        .expect("没设置 LOG4RS_CONFIG 环境变量，可在.env文件中设置或export LOG4RS_CONFIG=...");
+    // 初始化日志
+    log4rs::init_file(&config.log4rs_config, Default::default())
+        .expect("Failed to initialize logging");
 
-    log4rs::init_file(&log4rs_config, Default::default())
-        .map_err(|error| format!("配置日志系统失败，日志配置文件：{log4rs_config}, {error}"))
-        .unwrap();
-
-    let database_url = env::var("DATABASE_URL")
-        .expect("没设置 DATABASE_URL 环境变量，可在.env文件中设置或export DATABASE_URL=...");
-
-    let mut opt = ConnectOptions::new(database_url);
-    opt.max_connections(100)
-        // .min_connections(5)
-        .min_connections(1)
-        .connect_timeout(Duration::from_secs(8))
-        .idle_timeout(Duration::from_secs(8))
-        .sqlx_logging(false);
-
-    let db = Database::connect(opt).await.expect("连接到数据库失败");
-
-    // let jwt_secret = env::var("JWT_SECRET")
-    //     .expect("没设置 JWT_SECRET 环境变量，可在.env文件中设置或export JWT_SECRET=...");
-
-    let token_expire_seconds = env::var("TOKEN_EXPIRE_SECONDS").expect(
-        "没设置 TOKEN_EXPIRE_SECONDS 环境变量，可在.env文件中设置或export TOKEN_EXPIRE_SECONDS=...",
-    );
-
-    let token_expire_seconds: u64 = token_expire_seconds
-        .parse()
-        .expect("TOKEN_EXPIRE_SECONDS的值必需是正整数");
+    // 设置数据库
+    let db = setup_database(&config.database_url)
+        .await
+        .expect("Failed to connect to database");
 
     let shared_data = web::Data::new(AppState {
         db,
         // jwt_secret,
-        token_expire_seconds,
+        token_expire_seconds: config.token_expire_seconds,
     });
-
-    let args = args::Args::parse();
 
     #[cfg(feature = "swagger")]
     let openapi = ApiDoc::openapi();
@@ -121,8 +100,8 @@ async fn main() -> std::io::Result<()> {
 
         app
     })
-    .workers(args.n)
-    .bind(SocketAddrV4::new(args.ip, args.port))?
+    .workers(server_config.workers.into())
+    .bind(SocketAddrV4::new(server_config.ip, server_config.port))?
     .run()
     .await
 }

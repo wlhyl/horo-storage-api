@@ -4,7 +4,7 @@ use actix_web::{
 };
 use futures_util::{future::LocalBoxFuture, FutureExt};
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use log::{error, warn};
+use log::{debug, warn};
 use sea_orm::EntityTrait;
 use std::future::{ready, Ready};
 use std::rc::Rc;
@@ -73,9 +73,9 @@ where
         let token = match token.to_str() {
             Ok(s) => s,
             Err(error) => {
-                warn!("token解析不正确：{error}");
+                debug!("token解析不正确：{error}");
                 return async {
-                    let e = error::Error::Forbidden("token不正确".into());
+                    let e = error::Error::Auth("token不正确".into());
                     Err(e.into())
                 }
                 .boxed_local();
@@ -85,9 +85,9 @@ where
         let app_data = if let Some(data) = req.app_data::<web::Data<AppState>>() {
             data
         } else {
-            warn!("没有配置app_data");
+            debug!("没有配置app_data");
             return async {
-                let e = error::Error::ActixError("Internal Server Error".into());
+                let e = error::Error::Internal("应用缺少相关配置！".into());
                 Err(e.into())
             }
             .boxed_local();
@@ -98,8 +98,8 @@ where
         let claims = match decode::<Claims>(&token, &DecodingKey::from_secret(&[]), &validation) {
             Ok(claims) => claims,
             Err(error) => {
-                warn!("jwt解码错误：{}", error);
-                let e = error::Error::Forbidden("无效的token！".into());
+                debug!("jwt解码错误：{}", error);
+                let e = error::Error::Auth("无效的token！".into());
                 return async { Err(e.into()) }.boxed_local();
             }
         };
@@ -110,17 +110,17 @@ where
 
         let svc = Rc::clone(&self.service);
         Box::pin(async move {
-            let user = entity::user::Entity::find_by_id(user_id)
+            let user = entity::users::Entity::find_by_id(user_id)
                 .one(&db)
                 .await
                 .map_err(|error| {
-                    error!("数据查询user_id: {}错误：{}", user_id, error);
-                    error::Error::Forbidden("认证失败！".into())
+                    debug!("数据查询user_id: {}错误：{}", user_id, error);
+                    error::Error::Auth("认证失败！".into())
                 })?;
 
             let user = user.ok_or_else(|| {
                 warn!("user id: {}不存在，这可能是一个伪造的token", user_id);
-                error::Error::Forbidden("认证失败！".into())
+                error::Error::Auth("认证失败！".into())
             })?;
 
             // 校验token
