@@ -1,4 +1,4 @@
-FROM rust:1.85.0-alpine as build
+FROM rust:1.87.0-alpine as build
 WORKDIR /app
 COPY ./ /app/
 
@@ -21,7 +21,7 @@ RUN strip -s /tmp/app/bin/migration
 RUN strip  --strip-debug  /tmp/app/bin/migration 
 RUN upx /tmp/app/bin/migration
 
-FROM alpine:3.21.3
+FROM alpine:3.22
 
 WORKDIR /app
 
@@ -31,7 +31,11 @@ COPY --from=build /tmp/app/bin/migration /app/bin/migration
 # RUN sed -i s/dl-cdn.alpinelinux.org/mirror.tuna.tsinghua.edu.cn/g  /etc/apk/repositories  && \
 # apk add --no-cache tzdata
 
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata && \
+    addgroup -S appgroup && \
+    adduser -S appuser -G appgroup
+
+USER appuser
 
 EXPOSE 8080
 
